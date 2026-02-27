@@ -1,0 +1,37 @@
+{{> header}}
+
+<section class="secao-servicos secao-servicos--contato">
+    <div class="container-servicos">
+        <h1 class="titulo-secao">Fale com o HORB</h1>
+        <p class="descricao-secao">Estamos prontos para atender reservas, eventos corporativos e dúvidas sobre nossos serviços.</p>
+    </div>
+
+    <div class="contato-grid">
+        <div class="card-servico contato-card">
+            <h3>Atendimento</h3>
+            <p><strong>Telefone:</strong> (84) 98842-6424</p>
+            <p><strong>E-mail:</strong> reservas@hotelhorbo.com</p>
+            <p><strong>Horário:</strong> Segunda a Sábado, 8h às 17h</p>
+        </div>
+
+        <div class="card-servico contato-card">
+            <h3>Envie sua mensagem</h3>
+            {{#if successMessage}}
+                <p class="form-feedback form-feedback--success">{{successMessage}}</p>
+            {{/if}}
+
+            {{#if errorMessage}}
+                <p class="form-feedback form-feedback--error">{{errorMessage}}</p>
+            {{/if}}
+
+            <form class="form-contato" method="POST" action="/contato">
+                <input type="text" name="nome" placeholder="Seu nome" required value="{{formData.nome}}">
+                <input type="email" name="email" placeholder="Seu e-mail" required value="{{formData.email}}">
+                <textarea name="mensagem" rows="5" placeholder="Digite sua mensagem" required>{{formData.mensagem}}</textarea>
+                <button type="submit" class="botao-cta">Enviar</button>
+            </form>
+        </div>
+    </div>
+</section>
+
+{{> footer}}
