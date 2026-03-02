@@ -73,7 +73,7 @@ app.use(express.json())
 app.get('/', (req,res)=>{
     res.render('index', buildSeo(
         req,
-        'HORB | Home',
+        'HORB | principal',
         'Hotel Ouro Real Brilhante com estrutura diversificada para lazer, negócios e eventos, com foco em excelência e crescimento sustentável.',
         '/'
     ))
