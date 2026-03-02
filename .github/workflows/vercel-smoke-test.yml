@@ -1,0 +1,93 @@
+name: Vercel Smoke Test
+
+on:
+  push:
+    branches: ["main", "master"]
+  workflow_dispatch:
+
+jobs:
+  rotas-get-smoke-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validar secret PROD_URL
+        run: |
+          if [ -z "${{ secrets.PROD_URL }}" ]; then
+            echo "Secret PROD_URL nao configurado."
+            echo "Configure em: GitHub > Settings > Secrets and variables > Actions"
+            exit 1
+          fi
+
+      - name: Aguardar deploy Vercel
+        run: sleep 40
+
+      - name: Testar rotas GET (/ /menu /contato)
+        env:
+          BASE_URL: ${{ secrets.PROD_URL }}
+        run: |
+          set -e
+          URLS=("${BASE_URL%/}/" "${BASE_URL%/}/menu" "${BASE_URL%/}/contato")
+
+          for url in "${URLS[@]}"; do
+            ok=false
+            for attempt in 1 2 3 4 5 6; do
+              code=$(curl -s -o /tmp/get_resp.txt -w "%{http_code}" "$url")
+              echo "GET $url | Tentativa $attempt => HTTP $code"
+
+              if [ "$code" = "200" ] || [ "$code" = "301" ] || [ "$code" = "302" ]; then
+                ok=true
+                break
+              fi
+
+              sleep 10
+            done
+
+            if [ "$ok" != true ]; then
+              echo "Falha ao validar rota: $url"
+              echo "Resposta (se houver):"
+              cat /tmp/get_resp.txt || true
+              exit 1
+            fi
+          done
+
+          echo "Smoke test GET aprovado em todas as rotas"
+
+  contato-smoke-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validar secret PROD_URL
+        run: |
+          if [ -z "${{ secrets.PROD_URL }}" ]; then
+            echo "Secret PROD_URL nao configurado."
+            echo "Configure em: GitHub > Settings > Secrets and variables > Actions"
+            exit 1
+          fi
+
+      - name: Aguardar deploy Vercel
+        run: sleep 40
+
+      - name: Testar endpoint /contato (retry)
+        env:
+          BASE_URL: ${{ secrets.PROD_URL }}
+        run: |
+          set -e
+          TARGET_URL="${BASE_URL%/}/contato"
+
+          for attempt in 1 2 3 4 5 6; do
+            code=$(curl -s -o /tmp/resp.txt -w "%{http_code}" -X POST "$TARGET_URL" \
+              -H "Content-Type: application/x-www-form-urlencoded" \
+              --data "nome=Teste+CI&email=teste%40exemplo.com&mensagem=Teste+automatizado")
+
+            echo "Tentativa $attempt => HTTP $code"
+
+            if [ "$code" = "200" ] || [ "$code" = "302" ]; then
+              echo "Smoke test aprovado no /contato"
+              exit 0
+            fi
+
+            sleep 20
+          done
+
+          echo "Falha no smoke test. Ultimo status: $code"
+          echo "Resposta (se houver):"
+          cat /tmp/resp.txt || true
+          exit 1

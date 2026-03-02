@@ -1,5 +1,6 @@
 require('dotenv').config()
 
+const path = require('path')
 const express = require('express')
 const exphbs = require('express-handlebars')
 const nodemailer = require('nodemailer')
@@ -62,8 +63,9 @@ async function sendContactEmail({ nome, email, mensagem }) {
 
 app.engine('handlebars', exphbs.engine())
 app.set('view engine', 'handlebars')
+app.set('views', path.join(__dirname, 'views'))
 app.use(express.urlencoded({extended: true}))
-app.use(express.static('public'))
+app.use(express.static(path.join(__dirname, 'public')))
 app.use(express.json())
 
 //const basePath = path.join(__dirname, 'templates')
@@ -146,6 +148,10 @@ app.post('/contato', async (req,res)=>{
     }
 })
 
-app.listen(port, ()=>{
-    console.log(`Servidor rodando na porta ${port}`)
-})
+if (!process.env.VERCEL) {
+    app.listen(port, ()=>{
+        console.log(`Servidor rodando na porta ${port}`)
+    })
+}
+
+module.exports = app
